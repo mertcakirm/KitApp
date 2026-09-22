@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes, BOOLEAN } = require('sequelize');
 
 module.exports = (sequelize) => {
   return sequelize.define('Book', {
@@ -11,6 +11,7 @@ module.exports = (sequelize) => {
     description: { type: DataTypes.TEXT, allowNull: true },
     coverImage: { type: DataTypes.STRING, allowNull: true },
     filePath: { type: DataTypes.STRING, allowNull: false },
+    isVerified: {type:DataTypes.BOOLEAN, defaultValue:false},
     isActive:{type:DataTypes.BOOLEAN,defaultValue:true},
     userId: { 
       type: DataTypes.UUID,
