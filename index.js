@@ -1,10 +1,9 @@
-const express = require('express');
+require('dotenv').config();
+
 const _context = require('./src/context/AppDbContext'); 
+const app = require('./src/app');
 
-const app = express();
-const PORT = 3000;
-
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
 async function initApplication() {
   try {
