@@ -10,8 +10,18 @@ const _context = {};
 
 _context.Users = require('../models/User')(sequelize);
 _context.Books = require('../models/Book')(sequelize);
+_context.Roles = require('../models/Role')(sequelize);
 _context.Categories = require('../models/Category')(sequelize);
 
+// --- Role & User (One-to-Many) ---
+_context.Roles.hasMany(_context.Users, {
+  foreignKey: { name: 'roleId', type: DataTypes.UUID, allowNull: true },
+  as: 'users'
+});
+_context.Users.belongsTo(_context.Roles, {
+  foreignKey: { name: 'roleId', type: DataTypes.UUID, allowNull: true },
+  as: 'role'
+});
 
 // --- User & Book (One-to-Many) ---
 _context.Users.hasMany(_context.Books, { 
