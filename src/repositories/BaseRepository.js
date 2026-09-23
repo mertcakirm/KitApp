@@ -1,4 +1,4 @@
-const _context = require('../context/AppDbContext'); // Doğrudan context çağrılır
+const _context = require('../context/AppDbContext');
 
 class BaseRepository {
   constructor(modelName) {
@@ -10,7 +10,8 @@ class BaseRepository {
   }
 
   async getById(id, include = []) {
-    return await this.model.findByPk(id, { include });
+    const data = await this.model.findByPk(id, { include });
+    return data;
   }
 
   async create(data) {

@@ -1,5 +1,3 @@
-const UserResponseDto = require('../DTOs/UserDTO');
-
 class UserService{
 
     constructor(userRepository) {

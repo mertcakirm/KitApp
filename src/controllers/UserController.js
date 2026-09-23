@@ -16,12 +16,11 @@ class UserController{
             next(error);     
         }
     };
- 
-    
+
 }
 
 
-const userRepository = new UserRepository(_context);
-const userService = new UserService(userRepository);
+const userRepository = new UserRepository( _context );
+const userService = new UserService( userRepository );
 
-module.exports = new UserController(userService);
+module.exports = new UserController( userService );

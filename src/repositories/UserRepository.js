@@ -23,28 +23,48 @@ class UserRepository extends BaseRepository {
   }
 
 
-async getMyInfo(userId) {
-  const user = await this.model.findOne({
-    where: { id: userId },
-    attributes: [
-      'id',
-      'username',
-      'email',
-      'bookCount',
-      'roleId',
-      'createdAt'
-    ],
-    include: [{ association: 'role', attributes: ['id', 'name'] }]
-  });
+  async getMyInfo(userId) {
+    const user = await this.model.findOne({
+      where: { id: userId },
+      attributes: [
+        'id',
+        'username',
+        'email',
+        'bookCount',
+        'roleId',
+        'createdAt'
+      ],
+      include: [{ association: 'role', attributes: ['id', 'name'] }]
+    });
 
-  if (!user) {
-    return null;
+    if (!user) {
+      return null;
+    }
+
+    return new UserResponseDto(user);
   }
 
-  return new UserResponseDto(user);
-}
+  async increaseBookCount(userId) {
+    const user = await this.model.findOne({ where: { id: userId } });
+    
+    user.bookCount += 1;
+    await user.save();
 
+    return user;
+  }
 
+  async decreaseBookCount(userId) {
+    const user = await this.model.findOne({ where: { id: userId } });
+    
+    if (user.bookCount <= 0) {
+      throw new Error('Kitap sayısı zaten sıfır.');
+    }
+
+    user.bookCount -= 1;
+    await user.save();
+
+    return user;
+  }
 
 }
 
