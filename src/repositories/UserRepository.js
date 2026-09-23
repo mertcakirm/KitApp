@@ -12,6 +12,16 @@ class UserRepository extends BaseRepository {
     });
   }
 
+  async changePassword(userId , newPassword) {
+    const [affectedRows] = await this.model.update(
+      { password: newPassword },
+      { where: { id: userId } }
+    );
+
+    return affectedRows > 0;
+  }
+
+
 }
 
 module.exports = UserRepository;

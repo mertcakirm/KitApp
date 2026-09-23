@@ -72,6 +72,38 @@ class AuthService{
 
     return { user: userObject, token };
   }
+
+
+  async changePassword(id, data) {
+    const { oldPassword, newPassword } = data;
+
+    if (!oldPassword || !newPassword) {
+      const error = new Error('Eski şifre ve yeni şifre zorunludur.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await this.userRepository.getById(id);
+    if (!user) {
+      const error = new Error('Kullanıcı bulunamadı.');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      const error = new Error('Eski şifre yanlış.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.changePassword(id, hashedPassword);
+
+    return { message: 'Şifre başarıyla güncellendi.' };
+  }
+
+
 }
 
 

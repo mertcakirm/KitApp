@@ -28,6 +28,19 @@ class AuthController {
       next(error);
     }
   };
+
+    changePassword = async (req, res, next) => {
+    try {
+      const { id } = req.user;
+      const { oldPassword, newPassword } = req.body;
+      const result = await this.authService.changePassword(id, { oldPassword, newPassword });
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
 }
 
 const userRepository = new UserRepository(_context);
