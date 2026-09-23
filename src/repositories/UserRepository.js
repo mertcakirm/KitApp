@@ -1,4 +1,5 @@
 const BaseRepository = require('./BaseRepository');
+const UserResponseDto = require('../DTOs/UserDTO');
 
 class UserRepository extends BaseRepository {
   constructor() {
@@ -20,6 +21,29 @@ class UserRepository extends BaseRepository {
 
     return affectedRows > 0;
   }
+
+
+async getMyInfo(userId) {
+  const user = await this.model.findOne({
+    where: { id: userId },
+    attributes: [
+      'id',
+      'username',
+      'email',
+      'bookCount',
+      'roleId',
+      'createdAt'
+    ],
+    include: [{ association: 'role', attributes: ['id', 'name'] }]
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return new UserResponseDto(user);
+}
+
 
 
 }
