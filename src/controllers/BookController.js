@@ -13,6 +13,26 @@ class BookController{
     try {
         const { id } = req.user;
         const { title, description } = req.body;
+        let { categoryIds } = req.body;
+
+        if (typeof categoryIds === 'string') {
+            try {
+                categoryIds = JSON.parse(categoryIds);
+            } catch {
+                return res.status(400).json({
+                    success: false,
+                    message: 'categoryIds geçerli bir JSON dizisi olmalıdır.'
+                });
+            }
+        }
+
+        if (categoryIds === undefined) categoryIds = [];
+        if (!Array.isArray(categoryIds)) {
+            return res.status(400).json({
+                success: false,
+                message: 'categoryIds bir dizi olmalıdır.'
+            });
+        }
 
         if (!req.files || !req.files['pdf']) {
         return res.status(400).json({ 
@@ -34,7 +54,7 @@ class BookController{
         coverImage
         };
 
-        const newBook = await this.bookService.createBook(id, bookData);
+        const newBook = await this.bookService.createBook(id, bookData, categoryIds);
 
         return res.status(201).json({
         success: true,
