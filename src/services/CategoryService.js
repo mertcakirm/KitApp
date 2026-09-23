@@ -10,7 +10,7 @@ class CategoryService {
     }
 
     async create(categoryName){
-        const result = await this.categoryRepository.create({categoryName});
+        const result = await this.categoryRepository.create({name:categoryName});
         return result;
     }
 
