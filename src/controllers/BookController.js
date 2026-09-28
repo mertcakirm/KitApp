@@ -67,9 +67,44 @@ class BookController{
     };
 
 
+    getAllBooks = async (req, res) => {
+        try {
+            const { page = 1, limit = 10 } = req.query;
+
+            const result = await this.bookService.getAllBooks(page, limit);
+
+            return res.status(200).json({
+                success: true,
+                ...result // Servisten gelen totalItems, totalPages, currentPage ve books verilerini yayıyoruz
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'Kitaplar listelenirken bir hata oluştu.',
+                error: error.message
+            });
+        }
+    }
+
+    deleteBook = async (req, res, next) => {
+        try {
+            const userId = req.user.id; 
+            const { bookId } = req.params;
+
+            const result = await this.bookService.deleteBook(userId, bookId);
+
+            return res.status(200).json({
+                success: true,
+                message: result.message,
+                data: {
+                    bookId: result.bookId
+                }
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
-
-
 
 
 const bookRepository = new BookRepository(_context);

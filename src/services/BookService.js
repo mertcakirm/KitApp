@@ -28,6 +28,48 @@ class BookService{
         return newBook;
     }
 
+    async getAllBooks(pageNum, limit) {
+        const page = pageNum || 1;
+        const pageSize = limit || 10;
+
+        const result = await this.bookRepository.getAllBooks(page, pageSize);
+        if (!result || result===null) {
+            const error = new Error('Kullanıcı bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        return {
+            success: true,
+            message: 'Kitaplar başarıyla getirildi.',
+            data: result
+        };
+        };
+
+    async deleteBook(userId, bookId) {
+        const user = await this.userRepository.getById(userId);
+        if (!user) {
+            const error = new Error('Kullanıcı bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const book = await this.bookRepository.getById(bookId);
+        if (book.userId !== userId) {
+            const error = new Error('Bu kitabı silme yetkiniz yok.');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const result = await this.bookRepository.deleteBook(bookId);
+
+        if (result.success) {
+            await this.userRepository.decreaseBookCount(userId);
+        }
+
+        return result;
+    }
+
 }
 
 module.exports = BookService;
