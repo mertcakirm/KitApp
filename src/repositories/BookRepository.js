@@ -54,7 +54,6 @@ class BookRepository extends BaseRepository {
             throw error;
         }
 
-        // Eğer kitap zaten pasifse tekrar işlem yapmayalım
         if (!book.isActive) {
             return { success: false, message: "Kitap zaten pasif durumda.", bookId };
         }
@@ -65,6 +64,27 @@ class BookRepository extends BaseRepository {
         return { success: true, message: "Kitap başarıyla pasife alındı.", bookId };
     }
 
+    async updateBook(bookId, title, description, coverImage) {
+        const book = await this.model.findByPk(bookId);
+
+        if (!book) {
+            const error = new Error("Kitap bulunamadı.");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (title !== undefined) book.title = title;
+        if (description !== undefined) book.description = description;
+        if (coverImage !== undefined) book.coverImage = coverImage;
+
+        await book.save();
+
+        return {
+            success: true,
+            message: "Kitap başarıyla güncellendi.",
+            book
+        };
+    }
 
 
 

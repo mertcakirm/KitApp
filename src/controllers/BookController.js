@@ -104,6 +104,37 @@ class BookController{
             next(error);
         }
     }
+
+    updateBook = async (req, res, next) => {
+        try {
+            const userId = req.user.id;
+            const { bookId } = req.params;
+            const { title, description } = req.body;
+
+            let coverImage = undefined;
+            if (req.files && req.files['coverImage']) {
+                const coverFile = req.files['coverImage'][0];
+                coverImage = `/uploads/covers/${coverFile.filename}`;
+            }
+
+            const result = await this.bookService.updateBook(
+                userId, 
+                bookId, 
+                title, 
+                description, 
+                coverImage
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: result.message,
+                data: result.book
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 

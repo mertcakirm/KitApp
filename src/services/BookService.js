@@ -70,6 +70,34 @@ class BookService{
         return result;
     }
 
+
+        async updateBook(userId, bookId, title, description, coverImage) {
+        const user = await this.userRepository.getById(userId);
+        if (!user) {
+            const error = new Error('Kullanıcı bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const book = await this.bookRepository.getById(bookId);
+        if (!book) {
+            const error = new Error('Kitap bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (book.userId !== userId) {
+            const error = new Error('Bu kitabı güncelleme yetkiniz yok.');
+            error.statusCode = 403; // Forbidden
+            throw error;
+        }
+
+        const result = await this.bookRepository.updateBook(bookId, title, description, coverImage);
+
+        return result;
+    }
+
+
 }
 
 module.exports = BookService;

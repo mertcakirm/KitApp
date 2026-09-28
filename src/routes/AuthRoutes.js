@@ -4,6 +4,6 @@ const router = require('express').Router();
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
-router.post('/change-password', authenticateToken, authController.changePassword);
+router.put('/change-password', authenticateToken, authController.changePassword);
 
 module.exports = router; 
