@@ -75,7 +75,7 @@ class BookController{
 
             return res.status(200).json({
                 success: true,
-                ...result // Servisten gelen totalItems, totalPages, currentPage ve books verilerini yayıyoruz
+                ...result
             });
         } catch (error) {
             return res.status(500).json({
@@ -85,6 +85,24 @@ class BookController{
             });
         }
     }
+
+
+    getAllBooksByUserId = async (req, res, next) => {
+        try {
+            const { userId } = req.params;
+            const { page = 1, limit = 10 } = req.query;
+
+            const result = await this.bookService.getAllBooksByUserId(userId, page, limit);
+
+            return res.status(200).json({
+                success: true,
+                ...result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
 
     deleteBook = async (req, res, next) => {
         try {

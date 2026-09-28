@@ -46,6 +46,33 @@ class BookService{
         };
         };
 
+    async getAllBooksByUserId(userId , pageNum , limit) {
+
+        const user = await this.userRepository.getById(userId);
+        if (!user) {
+            const error = new Error('Kullanıcı bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const page = pageNum || 1;
+        const pageSize = limit || 10;
+
+        const result = await this.bookRepository.getAllBooksByUserId(userId,page, pageSize);
+        
+        if (!result || result===null) {
+            const error = new Error('Kullanıcı bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        return {
+            success: true,
+            message: 'Kitaplar başarıyla getirildi.',
+            data: result
+        };
+    };
+
     async deleteBook(userId, bookId) {
         const user = await this.userRepository.getById(userId);
         if (!user) {

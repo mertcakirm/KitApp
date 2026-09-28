@@ -13,7 +13,7 @@ class BookRepository extends BaseRepository {
         const offset = (page - 1) * pageSize;
 
         const { count, rows } = await this.model.findAndCountAll({
-            where: { isActive: true }, // Kitabın kendi aktiflik kontrolü
+            where: { isActive: true },
             attributes: { 
                 exclude: ['userId', "isActive"] 
             },
@@ -21,15 +21,15 @@ class BookRepository extends BaseRepository {
                 {
                     association: 'uploader',
                     attributes: ['id', 'username'],
-                    required: false, // Uploader join'ini zorunlu kılmamak için
-                    where: { isActive: true } // Sadece aktif uploader bilgilerini getir
+                    required: false,
+                    where: { isActive: true }
                 },
                 {
                     association: 'categories',
                     attributes: ['id', 'name'],
                     through: { attributes: [] },
-                    required: false, // Kategori join'ini zorunlu kılmamak için
-                    where: { isActive: true } // Sadece aktif kategorileri getir
+                    required: false,
+                    where: { isActive: true }
                 }
             ],
             limit: pageSize,
@@ -44,6 +44,43 @@ class BookRepository extends BaseRepository {
             books: rows
         };
     }
+
+
+    async getAllBooksByUserId(userId, pageNum = 1, limit = 10) {
+        const page = Math.max(1, parseInt(pageNum, 10));
+        const pageSize = Math.max(1, parseInt(limit, 10));
+        const offset = (page - 1) * pageSize;
+
+        const { count, rows } = await this.model.findAndCountAll({
+            where: { 
+                isActive: true, 
+                userId: userId 
+            },
+            attributes: { 
+                exclude: ["isActive"] 
+            },
+            include: [
+                {
+                    association: 'categories',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] },
+                    required: false,
+                    where: { isActive: true }
+                }
+            ],
+            limit: pageSize,
+            offset: offset,
+            distinct: true
+        });
+
+        return {
+            totalItems: count,
+            totalPages: Math.ceil(count / pageSize),
+            currentPage: page,
+            books: rows
+        };
+    }
+
 
     async deleteBook(bookId) {
         const book = await this.model.findByPk(bookId);
