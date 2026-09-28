@@ -139,7 +139,48 @@ class BookRepository extends BaseRepository {
         };
     }
 
+    async verifyBook(bookId){
+        const book = await this.model.findByPk(bookId);
+        if (!book) {
+            const error = new Error("Kitap bulunamadı.");
+            error.statusCode = 404;
+            throw error;
+        }
 
+        book.isVerified=true;
+        await book.save();
+
+
+        const verifiedCount = await this.model.count({
+            where: { userId: book.userId, isVerified: true }
+        });
+        return {
+            success: true,
+            message: "Kitap başarıyla doğrulandı.",
+            verifiedCount:verifiedCount
+        };
+    }
+
+    async unVerifyBook(bookId){
+        const book = await this.model.findByPk(bookId);
+        if (!book) {
+            const error = new Error("Kitap bulunamadı.");
+            error.statusCode = 404;
+            throw error;
+        }
+        book.isVerified=false;
+        await book.save();
+
+
+        const verifiedCount = await this.model.count({
+            where: { userId: book.userId, isVerified: true }
+        });
+        return {
+            success: true,
+            message: "Kitap doğrulaması kaldırıldı.",
+            verifiedCount:verifiedCount
+        };
+    }
 
 }
 

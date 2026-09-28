@@ -108,6 +108,44 @@ class UserRepository extends BaseRepository {
 
     return { success: true, message: 'Kullanıcı başarıyla silindi!' };
   }
+
+
+  async updateRole(userId, roleName) {
+    const Role = this.model.sequelize.models.Role;
+    if (!Role) {
+      throw new Error('Role modeli sistemde bulunamadı.');
+    }
+
+    const role = await Role.findOne({ where: { name: roleName } });
+    if (!role) {
+      throw new Error(`'${roleName}' adında bir rol bulunamadı.`);
+    }
+
+    const user = await this.model.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('Kullanıcı bulunamadı.');
+    }
+
+    let isAdmin = false;
+    if (user.roleId) {
+      const currentRole = await Role.findOne({ where: { id: user.roleId } });
+      if (currentRole && currentRole.name.toLowerCase() === 'admin') {
+        isAdmin = true;
+      }
+    }
+
+    if (!isAdmin) {
+      user.roleId = role.id;
+      await user.save();
+    }
+
+    return { 
+      success: isAdmin ? false : true, 
+      user 
+    };
+  }
+
+
 }
 
 module.exports = UserRepository;

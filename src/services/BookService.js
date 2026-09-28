@@ -98,7 +98,7 @@ class BookService{
     }
 
 
-        async updateBook(userId, bookId, title, description, coverImage) {
+    async updateBook(userId, bookId, title, description, coverImage) {
         const user = await this.userRepository.getById(userId);
         if (!user) {
             const error = new Error('Kullanıcı bulunamadı.');
@@ -123,7 +123,6 @@ class BookService{
 
         return result;
     }
-
 
 }
 

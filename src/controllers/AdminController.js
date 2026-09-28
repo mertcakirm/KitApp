@@ -49,6 +49,25 @@ class AdminController {
         }
     }
 
+    verifyBook = async (req,res,next) => {
+        try {
+            const {bookId} = req.params;
+            const result = await this.adminService.verifyBook(bookId);
+            return res.status(200).json(result);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    unverifyBook = async (req,res,next) => {
+        try {
+            const {bookId} = req.params;
+            const result = await this.adminService.unverifyBook(bookId);
+            return res.status(200).json(result);
+        } catch (error) {
+            next(error)
+        }
+    }
 
 }
 

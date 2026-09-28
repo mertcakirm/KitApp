@@ -12,7 +12,6 @@ const authenticateToken = (req, res, next) => {
   try {
     const decoded = verifyToken(token);
     
-    // id standardizasyonu (token'da id, userId veya sub olabilir)
     req.user = {
       ...decoded,
       id: decoded.id ?? decoded.userId ?? decoded.sub,
@@ -24,20 +23,24 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-// 2. Rol kontrolü middleware'i (Tek rol veya birden fazla rolü destekler)
+// 2. Rol kontrolü middleware'i
 const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Yetkilendirme başarısız: Kullanıcı bulunamadı.' });
     }
 
-    if (!roles.includes(req.user.roleName)) {
+    const userRole = req.user.roleName ? req.user.roleName.toLowerCase() : '';
+    const normalizedRoles = roles.map(role => role.toLowerCase());
+
+    if (!normalizedRoles.includes(userRole)) {
       return res.status(403).json({ message: 'Erişim yetkiniz bulunmamaktadır.' });
     }
 
     next();
   };
 };
+
 
 module.exports = {
   authenticateToken,
