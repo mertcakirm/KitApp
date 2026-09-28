@@ -3,6 +3,7 @@ const userController = require('../controllers/UserController');
 const { authenticateToken } = require('../middlewares/Authentication');
 
 router.get('/my-profile', authenticateToken, userController.getMyProfile);
+router.delete('/delete/me', authenticateToken, userController.deleteMyProfile);
 
 
 module.exports = router; 

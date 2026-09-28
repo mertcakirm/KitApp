@@ -13,7 +13,7 @@ class UserRepository extends BaseRepository {
     });
   }
 
-  async changePassword(userId , newPassword) {
+  async changePassword(userId, newPassword) {
     const [affectedRows] = await this.model.update(
       { password: newPassword },
       { where: { id: userId } }
@@ -21,7 +21,6 @@ class UserRepository extends BaseRepository {
 
     return affectedRows > 0;
   }
-
 
   async getMyInfo(userId) {
     const user = await this.model.findOne({
@@ -47,6 +46,10 @@ class UserRepository extends BaseRepository {
   async increaseBookCount(userId) {
     const user = await this.model.findOne({ where: { id: userId } });
     
+    if (!user) {
+      throw new Error('Kullanıcı bulunamadı.');
+    }
+    
     user.bookCount += 1;
     await user.save();
 
@@ -56,6 +59,10 @@ class UserRepository extends BaseRepository {
   async decreaseBookCount(userId) {
     const user = await this.model.findOne({ where: { id: userId } });
     
+    if (!user) {
+      throw new Error('Kullanıcı bulunamadı.');
+    }
+
     if (user.bookCount <= 0) {
       throw new Error('Kitap sayısı zaten sıfır.');
     }
@@ -66,6 +73,18 @@ class UserRepository extends BaseRepository {
     return user;
   }
 
+  async deleteUser(userId) {
+    const user = await this.model.findOne({ where: { id: userId } });
+
+    if (!user) {
+       throw new Error('Kullanıcı bulunamadı.');
+    }
+    
+    user.isActive = false;
+    await user.save();
+
+    return { success: true, message: 'Kullanıcı başarıyla silindi!' };
+  }
 }
 
 module.exports = UserRepository;

@@ -1,4 +1,5 @@
 const UserRepository = require('../repositories/UserRepository');
+const BookRepository = require('../repositories/BookRepository');
 const UserService = require('../services/UserService');
 const _context = require('../context/AppDbContext')
 
@@ -17,10 +18,22 @@ class UserController{
         }
     };
 
+
+    deleteMyProfile = async (req,res,next) => {
+        try {
+            const {id} = req.user;
+            const result = await this.userService.deleteUser(id);
+            return res.status(200).json(result);
+        } catch (error) {
+            next(error);  
+        }
+    }
+
 }
 
 
 const userRepository = new UserRepository( _context );
-const userService = new UserService( userRepository );
+const bookRepository = new BookRepository( _context );
+const userService = new UserService( userRepository , bookRepository );
 
 module.exports = new UserController( userService );

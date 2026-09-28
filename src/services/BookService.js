@@ -115,7 +115,7 @@ class BookService{
 
         if (book.userId !== userId) {
             const error = new Error('Bu kitabı güncelleme yetkiniz yok.');
-            error.statusCode = 403; // Forbidden
+            error.statusCode = 403; 
             throw error;
         }
 
