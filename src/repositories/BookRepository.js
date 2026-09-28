@@ -7,43 +7,59 @@ class BookRepository extends BaseRepository {
         super('Books');
     }
 
-    async getAllBooks(pageNum = 1, limit = 10) {
+    async getAllBooks(pageNum = 1, limit = 10, isAdmin = false) {
         const page = Math.max(1, parseInt(pageNum, 10));
         const pageSize = Math.max(1, parseInt(limit, 10));
         const offset = (page - 1) * pageSize;
 
+        const bookWhere = {};
+        if (!isAdmin) {
+        bookWhere.isActive = true;
+        }
+
+        const uploaderWhere = {};
+        if (!isAdmin) {
+        uploaderWhere.isActive = true;
+        }
+
+        const categoryWhere = {};
+        if (!isAdmin) {
+        categoryWhere.isActive = true;
+        }
+
         const { count, rows } = await this.model.findAndCountAll({
-            where: { isActive: true },
-            attributes: { 
-                exclude: ['userId', "isActive"] 
+        where: bookWhere,
+        attributes: { 
+            exclude: isAdmin ? ['userId'] : ['userId', 'isActive'] 
+        },
+        include: [
+            {
+            association: 'uploader',
+            attributes: ['id', 'username', 'isActive'],
+            required: false,
+            where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
             },
-            include: [
-                {
-                    association: 'uploader',
-                    attributes: ['id', 'username'],
-                    required: false,
-                    where: { isActive: true }
-                },
-                {
-                    association: 'categories',
-                    attributes: ['id', 'name'],
-                    through: { attributes: [] },
-                    required: false,
-                    where: { isActive: true }
-                }
-            ],
-            limit: pageSize,
-            offset: offset,
-            distinct: true
+            {
+            association: 'categories',
+            attributes: ['id', 'name','isActive'],
+            through: { attributes: [] },
+            required: false,
+            where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
+            }
+        ],
+        limit: pageSize,
+        offset: offset,
+        distinct: true
         });
 
         return {
-            totalItems: count,
-            totalPages: Math.ceil(count / pageSize),
-            currentPage: page,
-            books: rows
+        totalItems: count,
+        totalPages: Math.ceil(count / pageSize),
+        currentPage: page,
+        books: rows
         };
     }
+
 
 
     async getAllBooksByUserId(userId, pageNum = 1, limit = 10) {

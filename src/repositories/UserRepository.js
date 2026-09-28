@@ -6,6 +6,29 @@ class UserRepository extends BaseRepository {
     super('Users');
   }
 
+  async getAllUsers(pageNum = 1, limit = 10) {
+    const page = Math.max(1, parseInt(pageNum, 10));
+    const pageSize = Math.max(1, parseInt(limit, 10));
+    const offset = (page - 1) * pageSize;
+
+    const { count, rows } = await this.model.findAndCountAll({
+      attributes: {
+        exclude: ['password'] 
+      },
+      limit: pageSize,
+      offset: offset,
+      distinct: true
+    });
+
+    return {
+      totalItems: count,
+      totalPages: Math.ceil(count / pageSize),
+      currentPage: page,
+      users: rows 
+    };
+  }
+
+
   async findForAuthByEmail(email) {
     return await this.model.findOne({
       where: { email },
