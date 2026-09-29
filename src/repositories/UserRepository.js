@@ -43,6 +43,51 @@ class UserRepository extends BaseRepository {
     };
   }
 
+  async getWriters(pageNum = 1, limit = 10, search = '') {
+    const page = Math.max(1, parseInt(pageNum, 10));
+    const pageSize = Math.max(1, parseInt(limit, 10));
+    const offset = (page - 1) * pageSize;
+
+    const whereCondition = {
+      isActive: true
+    };
+
+    if (search) {
+      whereCondition[Op.or] = [
+        { username: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where: whereCondition,
+      attributes: {
+        exclude: ['password'] 
+      },
+      include: [
+        {
+          association: 'role',
+          attributes: ['name'],
+          where: {
+            name: 'writer' 
+          }
+        }
+      ],
+      limit: pageSize,
+      offset: offset,
+      distinct: true
+    });
+
+    return {
+      totalItems: count,
+      totalPages: Math.ceil(count / pageSize),
+      currentPage: page,
+      users: rows 
+    };
+  }
+
+
+
 
   async findForAuthByEmail(email) {
     return await this.model.findOne({
@@ -125,7 +170,6 @@ class UserRepository extends BaseRepository {
   }
 
   async updateRole(userId, roleName) {
-    // DÜZELTİLDİ: Role yerine Roles (AppDbContext'teki isimlendirmeye göre)
     const RoleModel = this.model.sequelize.models.Roles; 
     
     if (!RoleModel) {

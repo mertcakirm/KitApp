@@ -18,6 +18,16 @@ class UserController{
         }
     };
 
+    getAllWriters = async (req,res,next) => {
+        try {
+            const { page = 1, limit = 10,search } = req.query;
+            const result = await this.userService.getAllWriters(page,limit,search);
+            return res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 
     deleteMyProfile = async (req,res,next) => {
         try {

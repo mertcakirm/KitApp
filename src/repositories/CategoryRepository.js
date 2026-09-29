@@ -5,10 +5,16 @@ class CategoryRepository extends BaseRepository{
         super('Categories');
     };
 
-    async deleteCategory(id) {
+    async getAllCategories() {
+        return await this.model.findAndCountAll({
+        where: { isActive:true }
+        });
+    }
+
+    async deleteCategory(categoryId) {
         const category = await this.model.findOne({
             where: { 
-                id, 
+                id:categoryId, 
                 isActive: true 
             }
         });

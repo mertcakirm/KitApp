@@ -5,7 +5,7 @@ class CategoryService {
     }
 
     async getAll(){
-        const categories = await this.categoryRepository.getAll();
+        const categories = await this.categoryRepository.getAllCategories();
         return categories;
     }
 

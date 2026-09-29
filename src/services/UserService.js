@@ -16,6 +16,16 @@ class UserService{
         return user;
     }
 
+    async getAllWriters(pageNum = 1, limit = 10, search = '') {
+        const result = await this.userRepository.getWriters(pageNum, limit, search);
+        if (!result || result === null) {
+            const error = new Error('Veri bulunamadı.');
+            error.statusCode = 404;
+            throw error;
+        }
+        return result;
+    }
+
     async deleteUser(userId){
         const user = await this.userRepository.getMyInfo(userId)
         if (!user || user === null) {

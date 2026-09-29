@@ -3,6 +3,7 @@ const userController = require('../controllers/UserController');
 const { authenticateToken } = require('../middlewares/Authentication');
 
 router.get('/my-profile', authenticateToken, userController.getMyProfile);
+router.get('/writers-all', userController.getAllWriters);
 router.delete('/delete-my-profile', authenticateToken, userController.deleteMyProfile);
 
 
