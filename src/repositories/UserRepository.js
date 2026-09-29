@@ -42,7 +42,7 @@ class UserRepository extends BaseRepository {
       include: ['role']
     });
   }
-}
+
 
   async changePassword(userId, newPassword) {
     const [affectedRows] = await this.model.update(
