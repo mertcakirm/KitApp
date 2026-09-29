@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const BaseRepository = require('./BaseRepository');
 const UserResponseDto = require('../DTOs/UserDTO');
 
@@ -13,7 +14,7 @@ class UserRepository extends BaseRepository {
 
     const whereCondition = search ? {
       [Op.or]: [
-        { name: { [Op.like]: `%${search}%` } },
+        { username: { [Op.like]: `%${search}%` } },
         { email: { [Op.like]: `%${search}%` } }
       ]
     } : {};
@@ -23,6 +24,12 @@ class UserRepository extends BaseRepository {
       attributes: {
         exclude: ['password'] 
       },
+      include: [
+        {
+          association: 'role',  
+          attributes: ['name']
+        }
+      ],
       limit: pageSize,
       offset: offset,
       distinct: true
@@ -36,13 +43,13 @@ class UserRepository extends BaseRepository {
     };
   }
 
+
   async findForAuthByEmail(email) {
     return await this.model.findOne({
       where: { email },
       include: ['role']
     });
   }
-
 
   async changePassword(userId, newPassword) {
     const [affectedRows] = await this.model.update(
@@ -117,14 +124,15 @@ class UserRepository extends BaseRepository {
     return { success: true, message: 'Kullanıcı başarıyla silindi!' };
   }
 
-
   async updateRole(userId, roleName) {
-    const Role = this.model.sequelize.models.Role;
-    if (!Role) {
-      throw new Error('Role modeli sistemde bulunamadı.');
+    // DÜZELTİLDİ: Role yerine Roles (AppDbContext'teki isimlendirmeye göre)
+    const RoleModel = this.model.sequelize.models.Roles; 
+    
+    if (!RoleModel) {
+      throw new Error('Roles modeli sistemde bulunamadı.');
     }
 
-    const role = await Role.findOne({ where: { name: roleName } });
+    const role = await RoleModel.findOne({ where: { name: roleName } });
     if (!role) {
       throw new Error(`'${roleName}' adında bir rol bulunamadı.`);
     }
@@ -136,7 +144,7 @@ class UserRepository extends BaseRepository {
 
     let isAdmin = false;
     if (user.roleId) {
-      const currentRole = await Role.findOne({ where: { id: user.roleId } });
+      const currentRole = await RoleModel.findOne({ where: { id: user.roleId } });
       if (currentRole && currentRole.name.toLowerCase() === 'admin') {
         isAdmin = true;
       }
@@ -148,12 +156,10 @@ class UserRepository extends BaseRepository {
     }
 
     return { 
-      success: isAdmin ? false : true, 
+      success: !isAdmin, 
       user 
     };
   }
-
-
 }
 
 module.exports = UserRepository;

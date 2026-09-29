@@ -1,5 +1,5 @@
-const { where } = require('sequelize');
 const BaseRepository = require('./BaseRepository');
+const { Op } = require('sequelize');
 
 class BookRepository extends BaseRepository {
 
@@ -19,7 +19,7 @@ class BookRepository extends BaseRepository {
 
         if (search) {
             bookWhere.title = {
-                [Op.iLike]: `%${search}%`
+                [Op.like]: `%${search}%` // iLike yerine like kullanıldı
             };
         }
 
@@ -65,9 +65,6 @@ class BookRepository extends BaseRepository {
             books: rows
         };
     }
-
-
-
 
     async getAllBooksByUserId(userId, pageNum = 1, limit = 10) {
         const page = Math.max(1, parseInt(pageNum, 10));
@@ -157,7 +154,6 @@ class BookRepository extends BaseRepository {
         book.isVerified=true;
         await book.save();
 
-
         const verifiedCount = await this.model.count({
             where: { userId: book.userId, isVerified: true }
         });
@@ -178,7 +174,6 @@ class BookRepository extends BaseRepository {
         book.isVerified=false;
         await book.save();
 
-
         const verifiedCount = await this.model.count({
             where: { userId: book.userId, isVerified: true }
         });
@@ -188,7 +183,6 @@ class BookRepository extends BaseRepository {
             verifiedCount:verifiedCount
         };
     }
-
 }
 
 module.exports = BookRepository;

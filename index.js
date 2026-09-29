@@ -4,6 +4,7 @@ const https = require('https');
 
 const _context = require('./src/context/AppDbContext'); 
 const app = require('./src/app');
+const seedDatabase = require('./src/config/seed');
 
 const PORT = process.env.PORT || 3000; 
 
@@ -16,7 +17,7 @@ async function initApplication() {
   try {
     await _context.sequelize.sync();
     console.log('AppDbContext: Veritabanı ve tablolar başarıyla senkronize edildi.');
-
+    await seedDatabase(_context);
     const httpsServer = https.createServer(credentials, app);
 
     httpsServer.listen(PORT, () => {

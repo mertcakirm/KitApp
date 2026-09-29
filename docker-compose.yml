@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: kitapp_api
+    ports:
+      - "443:443"   # HTTPS
+      - "3000:3000" # Eğer
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # 2.MySQL 8.0
+  db:
+    image: mysql:8.0
+    container_name: kitapp_db
+    environment:
+      MYSQL_ROOT_PASSWORD: mySqlContainer1
+      MYSQL_DATABASE: kitapp_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
