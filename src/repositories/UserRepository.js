@@ -6,12 +6,20 @@ class UserRepository extends BaseRepository {
     super('Users');
   }
 
-  async getAllUsers(pageNum = 1, limit = 10) {
+  async getAllUsers(pageNum = 1, limit = 10, search = '') {
     const page = Math.max(1, parseInt(pageNum, 10));
     const pageSize = Math.max(1, parseInt(limit, 10));
     const offset = (page - 1) * pageSize;
 
+    const whereCondition = search ? {
+      [Op.or]: [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } }
+      ]
+    } : {};
+
     const { count, rows } = await this.model.findAndCountAll({
+      where: whereCondition,
       attributes: {
         exclude: ['password'] 
       },
@@ -28,13 +36,13 @@ class UserRepository extends BaseRepository {
     };
   }
 
-
   async findForAuthByEmail(email) {
     return await this.model.findOne({
       where: { email },
       include: ['role']
     });
   }
+}
 
   async changePassword(userId, newPassword) {
     const [affectedRows] = await this.model.update(

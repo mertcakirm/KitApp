@@ -7,58 +7,65 @@ class BookRepository extends BaseRepository {
         super('Books');
     }
 
-    async getAllBooks(pageNum = 1, limit = 10, isAdmin = false) {
+    async getAllBooks(pageNum = 1, limit = 10, isAdmin = false, search='') {
         const page = Math.max(1, parseInt(pageNum, 10));
         const pageSize = Math.max(1, parseInt(limit, 10));
         const offset = (page - 1) * pageSize;
 
         const bookWhere = {};
         if (!isAdmin) {
-        bookWhere.isActive = true;
+            bookWhere.isActive = true;
+        }
+
+        if (search) {
+            bookWhere.title = {
+                [Op.iLike]: `%${search}%`
+            };
         }
 
         const uploaderWhere = {};
         if (!isAdmin) {
-        uploaderWhere.isActive = true;
+            uploaderWhere.isActive = true;
         }
 
         const categoryWhere = {};
         if (!isAdmin) {
-        categoryWhere.isActive = true;
+            categoryWhere.isActive = true;
         }
 
         const { count, rows } = await this.model.findAndCountAll({
-        where: bookWhere,
-        attributes: { 
-            exclude: isAdmin ? ['userId'] : ['userId', 'isActive'] 
-        },
-        include: [
-            {
-            association: 'uploader',
-            attributes: ['id', 'username', 'isActive'],
-            required: false,
-            where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
+            where: bookWhere,
+            attributes: { 
+                exclude: isAdmin ? ['userId'] : ['userId', 'isActive'] 
             },
-            {
-            association: 'categories',
-            attributes: ['id', 'name','isActive'],
-            through: { attributes: [] },
-            required: false,
-            where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
-            }
-        ],
-        limit: pageSize,
-        offset: offset,
-        distinct: true
+            include: [
+                {
+                    association: 'uploader',
+                    attributes: ['id', 'username', 'isActive'],
+                    required: false,
+                    where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
+                },
+                {
+                    association: 'categories',
+                    attributes: ['id', 'name','isActive'],
+                    through: { attributes: [] },
+                    required: false,
+                    where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
+                }
+            ],
+            limit: pageSize,
+            offset: offset,
+            distinct: true
         });
 
         return {
-        totalItems: count,
-        totalPages: Math.ceil(count / pageSize),
-        currentPage: page,
-        books: rows
+            totalItems: count,
+            totalPages: Math.ceil(count / pageSize),
+            currentPage: page,
+            books: rows
         };
     }
+
 
 
 

@@ -28,11 +28,11 @@ class BookService{
         return newBook;
     }
 
-    async getAllBooks(pageNum, limit) {
+    async getAllBooks(pageNum, limit,search) {
         const page = pageNum || 1;
         const pageSize = limit || 10;
 
-        const result = await this.bookRepository.getAllBooks(page, pageSize);
+        const result = await this.bookRepository.getAllBooks(page, pageSize,false,search);
         if (!result || result===null) {
             const error = new Error('Kullanıcı bulunamadı.');
             error.statusCode = 404;

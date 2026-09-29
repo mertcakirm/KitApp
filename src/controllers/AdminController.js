@@ -10,8 +10,8 @@ class AdminController {
 
    getAllUsers = async (req,res,next) => {
         try {
-            const { page = 1, limit = 10 } = req.query;
-            const result = await this.adminService.getAllUsers(page,limit);
+            const { page = 1, limit = 10,search } = req.query;
+            const result = await this.adminService.getAllUsers(page,limit,search);
             return res.status(200).json(result);
         } catch (error) {
             next(error);
@@ -20,8 +20,8 @@ class AdminController {
 
     getAllBooks = async (req,res,next) => {
         try {
-            const { page = 1, limit = 10 } = req.query;
-            const result = await this.adminService.getAllBooks(page,limit);
+            const { page = 1, limit = 10, search } = req.query;
+            const result = await this.adminService.getAllBooks(page,limit,search);
             return res.status(200).json(result);
         } catch (error) {
             next(error);

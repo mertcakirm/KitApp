@@ -69,9 +69,9 @@ class BookController{
 
     getAllBooks = async (req, res) => {
         try {
-            const { page = 1, limit = 10 } = req.query;
+            const { page = 1, limit = 10,search } = req.query;
 
-            const result = await this.bookService.getAllBooks(page, limit);
+            const result = await this.bookService.getAllBooks(page, limit,search);
 
             return res.status(200).json({
                 success: true,
