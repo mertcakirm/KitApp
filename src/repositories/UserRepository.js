@@ -86,8 +86,38 @@ class UserRepository extends BaseRepository {
     };
   }
 
+  async getWriterProfile(userId) {
+    try {
+      const user = await this.model.findOne({
+        where: { id: userId },
+        attributes: [
+          'id',
+          'username',
+          'email',
+          'bookCount',
+          'createdAt'
+        ],
+        include: [
+          { 
+            association: 'role',
+            attributes: ['id', 'name'],
+            where: { name: 'Writer' },
+            required: true 
+          }
+        ]
+      });
 
+      if (!user) {
+        return null;
+      }
 
+      return new UserResponseDto(user.get({ plain: true }));
+
+    } catch (error) {
+      console.error(`getWriterProfile Error (userId: ${userId}):`, error);
+      throw error; 
+    }
+  }
 
   async findForAuthByEmail(email) {
     return await this.model.findOne({

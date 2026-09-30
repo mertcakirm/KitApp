@@ -26,6 +26,27 @@ class UserService{
         return result;
     }
 
+
+    async getWriterProfile(userId) {
+        if (!userId) throw new Error('Kullanıcı ID parametresi zorunludur.')
+
+        try {
+        const writerProfile = await this.userRepository.getWriterProfile(userId);
+
+        if (!writerProfile) {
+            const error = new Error('Yazar bulunamadı veya bu profile erişim yetkisi yok.');
+            error.status = 404;
+            throw error;
+        }
+
+        return writerProfile;
+
+        } catch (error) {
+        console.error(`UserService.getWriterProfile Error: ${error.message}`);
+        throw error; 
+        }
+    }
+
     async deleteUser(userId){
         const user = await this.userRepository.getMyInfo(userId)
         if (!user || user === null) {
