@@ -46,7 +46,7 @@ class BookService{
         };
         };
 
-    async getAllBooksByUserId(userId , pageNum , limit) {
+    async getAllBooksByUserId(userId , pageNum , limit,search) {
 
         const user = await this.userRepository.getById(userId);
         if (!user) {

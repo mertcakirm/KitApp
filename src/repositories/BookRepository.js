@@ -19,7 +19,7 @@ class BookRepository extends BaseRepository {
 
         if (search) {
             bookWhere.title = {
-                [Op.like]: `%${search}%` // iLike yerine like kullanıldı
+                [Op.like]: `%${search}%`
             };
         }
 
@@ -66,41 +66,57 @@ class BookRepository extends BaseRepository {
         };
     }
 
-    async getAllBooksByUserId(userId, pageNum = 1, limit = 10) {
-        const page = Math.max(1, parseInt(pageNum, 10));
-        const pageSize = Math.max(1, parseInt(limit, 10));
-        const offset = (page - 1) * pageSize;
+  async getAllBooksByUserId(userId, pageNum = 1, limit = 10, search = '') {
+    const page = Math.max(1, parseInt(pageNum, 10) || 1);
+    const pageSize = Math.max(1, parseInt(limit, 10) || 10);
+    const offset = (page - 1) * pageSize;
 
-        const { count, rows } = await this.model.findAndCountAll({
-            where: { 
-                isActive: true, 
-                userId: userId 
-            },
-            attributes: { 
-                exclude: ["isActive"] 
-            },
-            include: [
-                {
-                    association: 'categories',
-                    attributes: ['id', 'name'],
-                    through: { attributes: [] },
-                    required: false,
-                    where: { isActive: true }
-                }
-            ],
-            limit: pageSize,
-            offset: offset,
-            distinct: true
-        });
+    const whereCondition = { 
+        isActive: true, 
+        userId: userId 
+    };
 
-        return {
-            totalItems: count,
-            totalPages: Math.ceil(count / pageSize),
-            currentPage: page,
-            books: rows
-        };
+    if (search && search.trim() !== '') {
+        const searchTerm = `%${search.trim()}%`;
+        whereCondition[Op.or] = [
+            { title: { [Op.like]: searchTerm } },
+            { author: { [Op.like]: searchTerm } }
+        ];
     }
 
+    const { count, rows } = await this.model.findAndCountAll({
+        where: whereCondition,
+        attributes: { 
+            exclude: ['isActive'] 
+        },
+        include: [
+            {
+                association: 'uploader',
+                attributes: ['id', 'username'],
+                required: false,
+                where: { isActive: true }
+            },
+            {
+                association: 'categories',
+                attributes: ['id', 'name'],
+                through: { attributes: [] },
+                required: false,
+                where: { isActive: true }
+            }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: pageSize,
+        offset: offset,
+        distinct: true
+    });
+
+    return {
+        totalItems: count,
+        totalPages: Math.ceil(count / pageSize),
+        currentPage: page,
+        books: rows
+    };
+}
 
     async deleteBook(bookId) {
         const book = await this.model.findByPk(bookId);
