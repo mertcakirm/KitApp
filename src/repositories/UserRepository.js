@@ -199,8 +199,19 @@ class UserRepository extends BaseRepository {
     return { success: true, message: 'Kullanıcı başarıyla silindi!' };
   }
 
+  async getRoleByName(roleName) {
+    const RoleModel = await this.model.sequelize.models.Role;
+
+    if (!RoleModel) {
+      throw new Error('Roles modeli sistemde bulunamadı.');
+    }
+
+    const role = await RoleModel.findOne({ where: { name: roleName } });
+    return role;
+  } 
+
   async updateRole(userId, roleName) {
-    const RoleModel = this.model.sequelize.models.Roles; 
+    const RoleModel = await this.model.sequelize.models.Role; 
     
     if (!RoleModel) {
       throw new Error('Roles modeli sistemde bulunamadı.');

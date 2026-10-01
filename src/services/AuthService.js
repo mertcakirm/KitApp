@@ -15,13 +15,20 @@ class AuthService{
       throw error;
     }
 
+    const userRole = await this.userRepository.getRoleByName('User');
+    if (!userRole) {
+      const error = new Error('Varsayılan kullanıcı rolü (user) bulunamadı.');
+      error.statusCode = 500;
+      throw error;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await this.userRepository.create({
       email,
       password: hashedPassword,
       username,
-      roleId:"123987"
+      roleId: userRole.id
     });
 
     const token = signToken({

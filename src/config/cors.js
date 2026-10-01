@@ -1,10 +1,14 @@
-
 const corsOptions = {
-  origin: ['https://localhost:3000', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:5173',  
+    'https://localhost:5173', 
+    'http://localhost:3000',   
+    'http://127.0.0.1:5173'
+    ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200 
 };
 
 module.exports = corsOptions;

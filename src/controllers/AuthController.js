@@ -14,6 +14,10 @@ class AuthController {
       
       return res.status(201).json(result);
     } catch (error) {
+        console.error('Hata Adı:', error.name);
+  console.error('MySQL Hatası:', error.original || error.parent); // Asıl MySQL hata kodunu ve SQL sorgusunu gösterir
+  console.error('Doğrulama Hataları:', error.errors); // Hangi alanın (field) hata verdiğini gösterir
+ 
       next(error);
     }
   };
