@@ -4,10 +4,10 @@ class AdminService{
         this.bookRepository = bookRepository;
     }
 
-    async getAllUsers(pageNum,limit){
+    async getAllUsers(pageNum,limit,search){
         const page = pageNum || 1;
         const pageSize = limit || 10;
-        return await this.userRepository.getAllUsers(page,pageSize);
+        return await this.userRepository.getAllUsers(page,pageSize,search);
     }
 
     async getAllBooks(pageNum,limit,search){

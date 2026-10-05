@@ -41,13 +41,13 @@ class BookRepository extends BaseRepository {
             include: [
                 {
                     association: 'uploader',
-                    attributes: ['id', 'username', 'isActive'],
+                    attributes: ['id', 'username'],
                     required: false,
                     where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
                 },
                 {
                     association: 'categories',
-                    attributes: ['id', 'name','isActive'],
+                    attributes: ['id', 'name'],
                     through: { attributes: [] },
                     required: false,
                     where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
