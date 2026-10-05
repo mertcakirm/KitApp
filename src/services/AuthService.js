@@ -7,78 +7,70 @@ class AuthService{
     this.userRepository = userRepository;
   }
 
-  async register({ email, password, username }) {
-    const existingUser = await this.userRepository.findForAuthByEmail(email);
-    if (existingUser) {
-      const error = new Error('Bu email adresi zaten kullanımda.');
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const userRole = await this.userRepository.getRoleByName('User');
-    if (!userRole) {
-      const error = new Error('Varsayılan kullanıcı rolü (user) bulunamadı.');
-      error.statusCode = 500;
-      throw error;
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await this.userRepository.create({
-      email,
-      password: hashedPassword,
-      username,
-      roleId: userRole.id
-    });
-
-    const token = signToken({
-      id: newUser.id,
-      role: newUser.role?.name,
-    });
-
-    const User = {
-      id: newUser.id,
-      email: newUser.email,
-      username: newUser.username,
-      roleId: newUser.roleId,
-    };
-
-    return { user: User, token };
-  }
-
-
-  async login({ email, password }) {
-    const user = await this.userRepository.findForAuthByEmail(email);
-    if (!user) {
-      const error = new Error('Geçersiz email veya şifre.');
-      error.statusCode = 401;
-      throw error;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      const error = new Error('Geçersiz email veya şifre.');
-      error.statusCode = 401;
-      throw error;
-    }
+  buildAuthResponse(user, roleName) {
+    const normalizedRole = (roleName || '').toLowerCase();
 
     const userObject = {
       id: user.id,
-      isAdmin: user.role.name === 'admin',
-      isUser: user.role.name === 'user',
-      isWriter: user.role.name === 'writer',
-    }
+      isAdmin: normalizedRole === 'admin',
+      isUser: normalizedRole === 'user',
+      isWriter: normalizedRole === 'writer',
+    };
 
     const token = signToken({
       id: user.id,
       roleId: user.roleId,
       username: user.username,
-      roleName:user.role.name
-      
+      roleName: roleName
     });
 
     return { user: userObject, token };
   }
+
+async register({ email, password, username }) {
+  const existingUser = await this.userRepository.findForAuthByEmail(email);
+  if (existingUser) {
+    const error = new Error('Bu email adresi zaten kullanımda.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const userRole = await this.userRepository.getRoleByName('User');
+  if (!userRole) {
+    const error = new Error('Varsayılan kullanıcı rolü (user) bulunamadı.');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = await this.userRepository.create({
+    email,
+    password: hashedPassword,
+    username,
+    roleId: userRole.id
+  });
+
+  return this.buildAuthResponse(newUser, userRole.name);
+}
+
+async login({ email, password }) {
+  const user = await this.userRepository.findForAuthByEmail(email);
+  if (!user) {
+    const error = new Error('Geçersiz email veya şifre.');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    const error = new Error('Geçersiz email veya şifre.');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  return this.buildAuthResponse(user, user.role.name);
+}
 
 
   async changePassword(id, data) {

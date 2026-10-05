@@ -7,64 +7,84 @@ class BookRepository extends BaseRepository {
         super('Books');
     }
 
-    async getAllBooks(pageNum = 1, limit = 10, isAdmin = false, search='') {
-        const page = Math.max(1, parseInt(pageNum, 10));
-        const pageSize = Math.max(1, parseInt(limit, 10));
-        const offset = (page - 1) * pageSize;
+   async getAllBooks(pageNum = 1, limit = 10, isAdmin = false, search = '') {
+    const page = Math.max(1, parseInt(pageNum, 10) || 1);
+    const pageSize = Math.max(1, parseInt(limit, 10) || 10);
+    const offset = (page - 1) * pageSize;
 
-        const bookWhere = {};
+    const bookWhere = {};
+    if (!isAdmin) {
+        bookWhere.isActive = true;
+    }
+
+    if (search) {
+        const categoryMatch = { name: { [Op.like]: `%${search}%` } };
         if (!isAdmin) {
-            bookWhere.isActive = true;
+        categoryMatch.isActive = true;
         }
 
-        if (search) {
-            bookWhere.title = {
-                [Op.like]: `%${search}%`
-            };
-        }
-
-        const uploaderWhere = {};
-        if (!isAdmin) {
-            uploaderWhere.isActive = true;
-        }
-
-        const categoryWhere = {};
-        if (!isAdmin) {
-            categoryWhere.isActive = true;
-        }
-
-        const { count, rows } = await this.model.findAndCountAll({
-            where: bookWhere,
-            attributes: { 
-                exclude: isAdmin ? ['userId'] : ['userId', 'isActive'] 
-            },
-            include: [
-                {
-                    association: 'uploader',
-                    attributes: ['id', 'username'],
-                    required: false,
-                    where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
-                },
-                {
-                    association: 'categories',
-                    attributes: ['id', 'name'],
-                    through: { attributes: [] },
-                    required: false,
-                    where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
-                }
-            ],
-            limit: pageSize,
-            offset: offset,
-            distinct: true
+        const matchedBooks = await this.model.findAll({
+        attributes: ['id'],
+        include: [
+            {
+            association: 'categories',
+            attributes: [],
+            through: { attributes: [] },
+            required: true,
+            where: categoryMatch
+            }
+        ],
+        raw: true
         });
 
-        return {
-            totalItems: count,
-            totalPages: Math.ceil(count / pageSize),
-            currentPage: page,
-            books: rows
-        };
+        bookWhere[Op.or] = [
+        { title: { [Op.like]: `%${search}%` } },
+        { id: { [Op.in]: matchedBooks.map((b) => b.id) } }
+        ];
     }
+
+    const uploaderWhere = {};
+    if (!isAdmin) {
+        uploaderWhere.isActive = true;
+    }
+
+    const categoryWhere = {};
+    if (!isAdmin) {
+        categoryWhere.isActive = true;
+    }
+
+    const { count, rows } = await this.model.findAndCountAll({
+        where: bookWhere,
+        attributes: {
+        exclude: isAdmin ? ['userId'] : ['userId', 'isActive']
+        },
+        include: [
+        {
+            association: 'uploader',
+            attributes: ['id', 'username'],
+            required: false,
+            where: Object.keys(uploaderWhere).length > 0 ? uploaderWhere : undefined
+        },
+        {
+            association: 'categories',
+            attributes: ['id', 'name'],
+            through: { attributes: [] },
+            required: false,
+            where: Object.keys(categoryWhere).length > 0 ? categoryWhere : undefined
+        }
+        ],
+        limit: pageSize,
+        offset: offset,
+        distinct: true
+    });
+
+    return {
+        totalItems: count,
+        totalPages: Math.ceil(count / pageSize),
+        currentPage: page,
+        books: rows
+    };
+  }
 
   async getAllBooksByUserId(userId, pageNum = 1, limit = 10, search = '') {
     const page = Math.max(1, parseInt(pageNum, 10) || 1);

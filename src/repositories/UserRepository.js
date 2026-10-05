@@ -8,40 +8,44 @@ class UserRepository extends BaseRepository {
   }
 
   async getAllUsers(pageNum = 1, limit = 10, search = '') {
-    const page = Math.max(1, parseInt(pageNum, 10));
-    const pageSize = Math.max(1, parseInt(limit, 10));
-    const offset = (page - 1) * pageSize;
+  const page = Math.max(1, parseInt(pageNum, 10) || 1);
+  const pageSize = Math.max(1, parseInt(limit, 10) || 10);
+  const offset = (page - 1) * pageSize;
 
-    const whereCondition = search ? {
-      [Op.or]: [
-        { username: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } }
-      ]
-    } : {};
+  const whereCondition = search ? {
+    [Op.or]: [
+      { username: { [Op.like]: `%${search}%` } },
+      { email: { [Op.like]: `%${search}%` } }
+    ]
+  } : {};
 
-    const { count, rows } = await this.model.findAndCountAll({
-      where: whereCondition,
-      attributes: {
-        exclude: ['password'] 
-      },
-      include: [
-        {
-          association: 'role',  
-          attributes: ['name']
+  const { count, rows } = await this.model.findAndCountAll({
+    where: whereCondition,
+    attributes: {
+      exclude: ['password']
+    },
+    include: [
+      {
+        association: 'role',
+        attributes: ['name'],
+        required: true,
+        where: {
+          name: { [Op.notIn]: ['admin', 'Admin'] }
         }
-      ],
-      limit: pageSize,
-      offset: offset,
-      distinct: true
-    });
+      }
+    ],
+    limit: pageSize,
+    offset: offset,
+    distinct: true
+  });
 
-    return {
-      totalItems: count,
-      totalPages: Math.ceil(count / pageSize),
-      currentPage: page,
-      users: rows 
-    };
-  }
+  return {
+    totalItems: count,
+    totalPages: Math.ceil(count / pageSize),
+    currentPage: page,
+    users: rows
+  };
+}
 
   async getWriters(pageNum = 1, limit = 10, search = '') {
     const page = Math.max(1, parseInt(pageNum, 10));
@@ -186,18 +190,31 @@ class UserRepository extends BaseRepository {
     return user;
   }
 
-  async deleteUser(userId) {
-    const user = await this.model.findOne({ where: { id: userId } });
+async deleteUser(userId) {
+  const user = await this.model.findOne({
+    where: { id: userId },
+    include: [
+      {
+        association: 'role',
+        attributes: ['name']
+      }
+    ]
+  });
 
-    if (!user) {
-       throw new Error('Kullanıcı bulunamadı.');
-    }
-    
-    user.isActive = false;
-    await user.save();
-
-    return { success: true, message: 'Kullanıcı başarıyla silindi!' };
+  if (!user) {
+    throw new Error('Kullanıcı bulunamadı.');
   }
+
+  const roleName = user.role?.name?.toLowerCase();
+  if (roleName === 'admin') {
+    throw new Error('Admin kullanıcılar silinemez.');
+  }
+
+  user.isActive = false;
+  await user.save();
+
+  return { success: true, message: 'Kullanıcı başarıyla silindi!' };
+}
 
   async getRoleByName(roleName) {
     const RoleModel = await this.model.sequelize.models.Role;
@@ -210,41 +227,34 @@ class UserRepository extends BaseRepository {
     return role;
   } 
 
-  async updateRole(userId, roleName) {
-    const RoleModel = await this.model.sequelize.models.Role; 
-    
-    if (!RoleModel) {
-      throw new Error('Roles modeli sistemde bulunamadı.');
-    }
-
-    const role = await RoleModel.findOne({ where: { name: roleName } });
-    if (!role) {
-      throw new Error(`'${roleName}' adında bir rol bulunamadı.`);
-    }
-
-    const user = await this.model.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new Error('Kullanıcı bulunamadı.');
-    }
-
-    let isAdmin = false;
-    if (user.roleId) {
-      const currentRole = await RoleModel.findOne({ where: { id: user.roleId } });
-      if (currentRole && currentRole.name.toLowerCase() === 'admin') {
-        isAdmin = true;
-      }
-    }
-
-    if (!isAdmin) {
-      user.roleId = role.id;
-      await user.save();
-    }
-
-    return { 
-      success: !isAdmin, 
-      user 
-    };
+async updateRole(userId, roleName) {
+  const RoleModel = this.model.sequelize.models.Role;
+  if (!RoleModel) {
+    throw new Error('Roles modeli sistemde bulunamadı.');
   }
+
+  const role = await RoleModel.findOne({ where: { name: roleName } });
+  if (!role) {
+    throw new Error(`'${roleName}' adında bir rol bulunamadı.`);
+  }
+
+  const user = await this.model.findOne({
+    where: { id: userId },
+    include: [{ association: 'role', attributes: ['name'] }]
+  });
+  if (!user) {
+    throw new Error('Kullanıcı bulunamadı.');
+  }
+
+  if (user.role?.name?.toLowerCase() === 'admin') {
+    throw new Error('Admin kullanıcıların rolü değiştirilemez.');
+  }
+
+  user.roleId = role.id;
+  await user.save();
+
+  return { success: true, user };
+}
 }
 
 module.exports = UserRepository;

@@ -11,25 +11,21 @@ class CategoryRepository extends BaseRepository{
         });
     }
 
-    async deleteCategory(categoryId) {
-        const category = await this.model.findOne({
-            where: { 
-                id:categoryId, 
-                isActive: true 
-            }
-        });
+async deleteCategory(categoryId) {
+  const category = await this.model.findOne({
+    where: { id: categoryId }
+  });
 
-        if (!category) {
-            const error = new Error('Kategori bulunamadı!');
-            error.statusCode = 404;
-            throw error;
-        }
+  if (!category) {
+    const error = new Error('Kategori bulunamadı!');
+    error.statusCode = 404;
+    throw error;
+  }
 
-        category.isActive = false;
-        await category.save();
+  await category.destroy();
 
-        return { success: true, message: 'Kategori başarıyla silindi.' };
-    }
+  return { success: true, message: 'Kategori başarıyla silindi.' };
+}
 
 }
 

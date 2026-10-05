@@ -92,7 +92,7 @@ class BookController{
             const { userId } = req.params;
             const { page = 1, limit = 10 ,search} = req.query;
 
-            const result = await this.bookService.getAllBooksByUserId(userId, page, limit);
+            const result = await this.bookService.getAllBooksByUserId(userId, page, limit,search);
 
             return res.status(200).json({
                 success: true,

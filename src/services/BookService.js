@@ -58,7 +58,7 @@ class BookService{
         const page = pageNum || 1;
         const pageSize = limit || 10;
 
-        const result = await this.bookRepository.getAllBooksByUserId(userId,page, pageSize);
+        const result = await this.bookRepository.getAllBooksByUserId(userId,page, pageSize,search);
         
         if (!result || result===null) {
             const error = new Error('Kullanıcı bulunamadı.');
