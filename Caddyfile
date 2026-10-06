@@ -1,0 +1,9 @@
+localhost {
+	reverse_proxy api:3000
+}
+
+# Canlıya alırken yukarıdaki bloğu silip alan adınızı yazın:
+#
+# api.sizinalanadiniz.com {
+# 	reverse_proxy api:3000
+# }

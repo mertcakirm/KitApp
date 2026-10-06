@@ -125,7 +125,7 @@ class UserRepository extends BaseRepository {
 
   async findForAuthByEmail(email) {
     return await this.model.findOne({
-      where: { email },
+      where: { email, isActive: true },
       include: ['role']
     });
   }

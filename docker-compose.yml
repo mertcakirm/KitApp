@@ -1,21 +1,22 @@
 version: '3.8'
 
 services:
+  # 1. Express API (dışarıya doğrudan açılmaz, sadece Caddy üzerinden erişilir)
   api:
     build: .
     container_name: kitapp_api
-    ports:
-      - "443:443"   # HTTPS
-      - "3000:3000" # Eğer
+    expose:
+      - "3000"
     env_file:
       - .env
     volumes:
       - ./uploads:/usr/src/app/uploads
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
-  # 2.MySQL 8.0
+  # 2. MySQL 8.0
   db:
     image: mysql:8.0
     container_name: kitapp_db
@@ -23,10 +24,33 @@ services:
       MYSQL_ROOT_PASSWORD: mySqlContainer1
       MYSQL_DATABASE: kitapp_db
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306" # sadece bu bilgisayardan erişilebilir
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  # 3. Caddy (HTTPS)
+  caddy:
+    image: caddy:2
+    container_name: kitapp_caddy
+    ports:
+      - "80:80"   # HTTP -> HTTPS yönlendirmesi ve Let's Encrypt doğrulaması
+      - "443:443" # HTTPS
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data     # sertifikalar burada saklanır, silmeyin
+      - caddy_config:/config
+    depends_on:
+      - api
     restart: unless-stopped
 
 volumes:
   mysql_data:
+  caddy_data:
+  caddy_config:
